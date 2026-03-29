@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HW2 — Magic Square Generator</title>
+  <style>
+    /* ─── Global Reset & Font ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: #e0e0e0;
+      padding: 24px 16px;
+    }
+
+    /* ─── Title ─── */
+    .page-title {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .page-title h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #e2b96f;
+      letter-spacing: 2px;
+      text-shadow: 0 0 16px #e2b96f88;
+    }
+    .page-title p {
+      color: #a0aec0;
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    /* ─── Main Layout ─── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ─── Card ─── */
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 14px;
+      padding: 22px 26px;
+      backdrop-filter: blur(6px);
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #63b3ed;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .icon { font-size: 1.2rem; }
+
+    /* ─── Form Row ─── */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 18px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1 1 160px;
+    }
+    .form-group label {
+      font-size: 0.82rem;
+      color: #a0aec0;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group input[type="number"] {
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 1rem;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .form-group input[type="number"]:focus {
+      border-color: #63b3ed;
+    }
+    .form-group input[type="number"]::-webkit-inner-spin-button { opacity: 0.6; }
+
+    /* ─── Radio Direction ─── */
+    .direction-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .dir-btn {
+      position: relative;
+      cursor: pointer;
+    }
+    .dir-btn input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0; height: 0;
+    }
+    .dir-btn .btn-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px 6px;
+      border: 1.5px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      font-size: 0.72rem;
+      color: #a0aec0;
+      text-align: center;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+      line-height: 1.3;
+      min-height: 72px;
+      cursor: pointer;
+    }
+    .dir-btn .btn-label .dir-icon {
+      font-size: 1.35rem;
+    }
+    .dir-btn input[type="radio"]:checked + .btn-label {
+      background: rgba(99,179,237,0.22);
+      border-color: #63b3ed;
+      color: #fff;
+    }
+    .dir-btn .btn-label:hover {
+      background: rgba(99,179,237,0.12);
+      border-color: rgba(99,179,237,0.5);
+      color: #e0e0e0;
+    }
+
+    /* ─── Notice ─── */
+    .notice {
+      font-size: 0.78rem;
+      color: #68d391;
+      background: rgba(72,187,120,0.1);
+      border: 1px solid rgba(72,187,120,0.25);
+      border-radius: 7px;
+      padding: 8px 12px;
+      margin-top: 10px;
+    }
+
+    /* ─── Buttons ─── */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: none;
+      border-radius: 9px;
+      padding: 11px 26px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s, opacity 0.12s, box-shadow 0.18s;
+      letter-spacing: 0.5px;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary {
+      background: linear-gradient(135deg, #3182ce, #63b3ed);
+      color: #fff;
+      box-shadow: 0 4px 14px #3182ce55;
+    }
+    .btn-primary:hover { box-shadow: 0 6px 20px #3182ce88; }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #e0e0e0;
+      border: 1.5px solid rgba(255,255,255,0.2);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.16); }
+    .btn-danger {
+      background: linear-gradient(135deg, #c53030, #fc8181);
+      color: #fff;
+      box-shadow: 0 4px 14px #c5303055;
+    }
+
+    /* ─── Output Area ─── */
+    #output-area {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ─── Single Square Block ─── */
+    .square-block {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 18px 20px;
+      animation: fadeIn 0.35s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .square-block .sq-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .sq-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #e2b96f;
+    }
+    .sq-badge {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+    .badge-valid   { background: rgba(72,187,120,0.2); color: #68d391; border: 1px solid #68d39166; }
+    .badge-invalid { background: rgba(252,129,129,0.2); color: #fc8181; border: 1px solid #fc818166; }
+    .badge-type-odd  { background: rgba(159,122,234,0.2); color: #b794f4; border: 1px solid #b794f466; }
+    .badge-type-4k   { background: rgba(99,179,237,0.2);  color: #63b3ed; border: 1px solid #63b3ed66; }
+    .badge-type-2k   { background: rgba(246,173,85,0.2);  color: #f6ad55; border: 1px solid #f6ad5566; }
+
+    /* ─── Grid Table ─── */
+    .sq-grid {
+      overflow-x: auto;
+    }
+    .sq-table {
+      border-collapse: collapse;
+      margin: 0 auto;
+      width: fit-content;
+    }
+    .sq-table td {
+      width: 46px;
+      height: 46px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 1rem;
+      font-weight: 700;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 5px;
+      transition: background 0.15s;
+      color: #e0e0e0;
+    }
+    .sq-table td:hover { background: rgba(99,179,237,0.2); cursor: default; }
+
+    /* diagonal highlight */
+    .diag-main { color: #63b3ed !important; }
+    .diag-anti { color: #f6ad55 !important; }
+    .diag-both { color: #68d391 !important; }
+
+    /* ─── Validation Summary ─── */
+    .val-summary {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .val-chip {
+      font-size: 0.73rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #a0aec0;
+    }
+    .val-chip.ok  { background: rgba(72,187,120,0.12); color: #68d391; border-color: #68d39144; }
+    .val-chip.err { background: rgba(252,129,129,0.12); color: #fc8181; border-color: #fc818144; }
+
+    /* ─── History ─── */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .history-item:hover { background: rgba(99,179,237,0.12); border-color: #63b3ed44; }
+    .history-item .hi-left { color: #e2b96f; font-weight: 700; }
+    .history-item .hi-right { color: #a0aec0; font-size: 0.75rem; }
+
+    /* ─── Tooltip hint ─── */
+    #empty-hint {
+      text-align: center;
+      color: #4a5568;
+      padding: 40px 0;
+      font-size: 1rem;
+    }
+    #empty-hint .big { font-size: 3rem; margin-bottom: 10px; }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+    /* ─── Mobile ─── */
+    @media (max-width: 600px) {
+      .direction-grid { grid-template-columns: repeat(4, 1fr); }
+      .sq-table td { width: 34px; height: 34px; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Title -->
+  <div class="page-title">
+    <h1>✨ Magic Square Generator</h1>
+
+  </div>
+
+  <!-- Input Card -->
+  <div class="card">
+    <div class="card-title"><span class="icon">⚙️</span> 設定參數</div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:0 0 180px;">
+        <label>方陣大小 n</label>
+        <input type="number" id="inp-n" value="3" min="1" max="25" />
+      </div>
+    </div>
+
+    <!-- Direction -->
+    <div style="margin-top:18px;">
+      <div class="card-title" style="margin-bottom:10px;"><span class="icon">🧭</span> 奇數階移動方向（偶數階忽略）</div>
+      <div class="direction-grid" id="dir-grid">
+        <!-- 8 radio buttons injected by JS -->
+      </div>
+    </div>
+
+    <div class="notice" id="dir-notice">
+      目前選擇：方向 1 — 最上列中央為起點，向左上移動，碰撞往下
+    </div>
+
+    <div class="btn-row" style="margin-top:18px;">
+      <button class="btn btn-primary" onclick="onGenerate()">▶ 產生方陣</button>
+      <button class="btn btn-secondary" onclick="onGenerateAll()">⚡ 產生全部 8 方向（奇數）</button>
+      <button class="btn btn-danger" onclick="onClear()">🗑 清除</button>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span> 輸出結果</div>
+    <div id="output-area">
+      <div id="empty-hint">
+        <div class="big">🔢</div>
+        尚未產生方陣，請在上方輸入參數後按「產生方陣」
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between;">
+      <span><span class="icon">🕓</span> 產生紀錄</span>
+      <button class="btn btn-secondary" style="padding:5px 14px;font-size:0.8rem;" onclick="clearHistory()">清除紀錄</button>
+    </div>
+    <div class="history-list" id="history-list">
+      <div style="color:#4a5568;font-size:0.82rem;text-align:center;padding:16px 0;">尚無紀錄</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     JavaScript — Magic Square Logic (ported from C++)
+════════════════════════════════════════════ -->
+<script>
+/* ─── Direction metadata ─── */
+const DIRECTIONS = [
+  { id:1, icon:"↖", start:"上中", move:"左上", bounce:"往下" },
+  { id:2, icon:"↙", start:"下中", move:"左下", bounce:"往上" },
+  { id:3, icon:"↗", start:"上中", move:"右上", bounce:"往下" },
+  { id:4, icon:"↘", start:"下中", move:"右下", bounce:"往上" },
+  { id:5, icon:"↖", start:"左中", move:"左上", bounce:"往右" },
+  { id:6, icon:"↙", start:"左中", move:"左下", bounce:"往右" },
+  { id:7, icon:"↗", start:"右中", move:"右上", bounce:"往左" },
+  { id:8, icon:"↘", start:"右中", move:"右下", bounce:"往左" },
+];
+
+function dirLabel(d) {
+  return `方向 ${d.id} — ${d.start}為起點，向${d.move}移動，碰撞${d.bounce}`;
+}
+
+/* ─── Build Radio Buttons ─── */
+function buildDirectionGrid() {
+  const grid = document.getElementById('dir-grid');
+  grid.innerHTML = '';
+  DIRECTIONS.forEach(d => {
+    const lbl = document.createElement('label');
+    lbl.className = 'dir-btn';
+    lbl.innerHTML = `
+      <input type="radio" name="direction" value="${d.id}" ${d.id===1?'checked':''} onchange="onDirChange()"/>
+      <div class="btn-label">
+        <span class="dir-icon">${d.icon}</span>
+        <span>${d.start}</span>
+        <span style="color:#63b3ed;font-size:0.7rem;">${d.move} / ${d.bounce}</span>
+      </div>`;
+    grid.appendChild(lbl);
+  });
+}
+
+function onDirChange() {
+  const v = parseInt(document.querySelector('input[name="direction"]:checked').value);
+  const d = DIRECTIONS[v-1];
+  document.getElementById('dir-notice').textContent = `目前選擇：${dirLabel(d)}`;
+}
+
+/* ════════ ALGORITHM (ported from C++) ════════ */
+
+function validateMagicSquare(sq, n) {
+  const magic = n * (n * n + 1) / 2;
+  for (let i = 0; i < n; i++) {
+    let s = 0; for (let j = 0; j < n; j++) s += sq[i][j];
+    if (s !== magic) return false;
+  }
+  for (let j = 0; j < n; j++) {
+    let s = 0; for (let i = 0; i < n; i++) s += sq[i][j];
+    if (s !== magic) return false;
+  }
+  let d1=0, d2=0;
+  for (let i = 0; i < n; i++) { d1 += sq[i][i]; d2 += sq[i][n-1-i]; }
+  return d1 === magic && d2 === magic;
+}
+
+function generateSquare(n, direction) {
+  if (n < 1) return null;
+  if (n === 2) return null;
+
+  const sq = Array.from({length:n}, ()=>new Array(n).fill(0));
+
+  if (n % 2 !== 0) {
+    /* ── Odd order ── */
+    let i, j;
+    if      (direction===1||direction===3) { i=0;       j=(n-1)/2; }
+    else if (direction===2||direction===4) { i=n-1;     j=(n-1)/2; }
+    else if (direction===5||direction===6) { i=(n-1)/2; j=0; }
+    else                                   { i=(n-1)/2; j=n-1; }
+
+    sq[i][j] = 1;
+    let data = 2;
+    while (data <= n*n) {
+      let k, l;
+      switch(direction) {
+        case 1:
+          k = (i===0)   ? n-1 : i-1;  l = (j===0) ? n-1 : j-1;
+          if (sq[k][l]>0) { k=(i+1)%n; l=j; } break;
+        case 2:
+          k = (i+1===n) ? 0   : i+1;  l = (j===0) ? n-1 : j-1;
+          if (sq[k][l]>0) { k=(i===0)?n-1:i-1; l=j; } break;
+        case 3:
+          k = (i===0)   ? n-1 : i-1;  l = (j+1===n) ? 0 : j+1;
+          if (sq[k][l]>0) { k=(i+1)%n; l=j; } break;
+        case 4:
+          k = (i+1===n) ? 0   : i+1;  l = (j+1===n) ? 0 : j+1;
+          if (sq[k][l]>0) { k=(i===0)?n-1:i-1; l=j; } break;
+        case 5:
+          k = (i===0)   ? n-1 : i-1;  l = (j===0) ? n-1 : j-1;
+          if (sq[k][l]>0) { k=i; l=(j+1)%n; } break;
+        case 6:
+          k = (i+1===n) ? 0   : i+1;  l = (j===0) ? n-1 : j-1;
+          if (sq[k][l]>0) { k=i; l=(j+1)%n; } break;
+        case 7:
+          k = (i===0)   ? n-1 : i-1;  l = (j+1===n) ? 0 : j+1;
+          if (sq[k][l]>0) { k=i; l=(j===0)?n-1:j-1; } break;
+        case 8:
+          k = (i+1===n) ? 0   : i+1;  l = (j+1===n) ? 0 : j+1;
+          if (sq[k][l]>0) { k=i; l=(j===0)?n-1:j-1; } break;
+      }
+      i=k; j=l; sq[i][j]=data++;
+    }
+
+  } else if (n % 4 === 0) {
+    /* ── Doubly-even (4k) ── */
+    let data=1;
+    for (let r=0;r<n;r++) for (let c=0;c<n;c++) {
+      if ((r%4===c%4) || ((r%4+c%4)===3)) sq[r][c]=(n*n+1)-data;
+      else sq[r][c]=data;
+      data++;
+    }
+
+  } else {
+    /* ── Singly-even (n=4k+2) ── */
+    const m = n/2;
+    const kv = (n-2)/4;
+    let r=0, c=(m-1)/2;
+
+    for (let num=1; num<=m*m; num++) {
+      sq[r][c]       = num;
+      sq[r+m][c+m]   = num + m*m;
+      sq[r][c+m]     = num + 2*m*m;
+      sq[r+m][c]     = num + 3*m*m;
+
+      let nr = (r-1<0) ? m-1 : r-1;
+      let nc = (c+1===m) ? 0 : c+1;
+      if (sq[nr][nc]>0) { nr=(r+1)%m; nc=c; }
+      r=nr; c=nc;
+    }
+    // swap left columns
+    for (let i=0;i<m;i++) for (let j=0;j<kv;j++) {
+      let sc=j;
+      if (i===Math.floor(m/2)) sc=j+1;
+      const tmp=sq[i][sc]; sq[i][sc]=sq[i+m][sc]; sq[i+m][sc]=tmp;
+    }
+    // swap right columns
+    for (let i=0;i<m;i++) for (let j=n-kv+1;j<n;j++) {
+      const tmp=sq[i][j]; sq[i][j]=sq[i+m][j]; sq[i+m][j]=tmp;
+    }
+  }
+  return sq;
+}
+
+/* ════════ RENDER ════════ */
+
+function typeName(n) {
+  if (n%2!==0) return { label:"奇數階", cls:"badge-type-odd" };
+  if (n%4===0) return { label:"雙偶數階", cls:"badge-type-4k" };
+  return { label:"單偶數階", cls:"badge-type-2k" };
+}
+
+function getRowSums(sq, n) {
+  const magic = n*(n*n+1)/2;
+  return Array.from({length:n},(_,i)=>{ const s=sq[i].reduce((a,b)=>a+b,0); return {s,ok:s===magic}; });
+}
+function getColSums(sq, n) {
+  const magic = n*(n*n+1)/2;
+  return Array.from({length:n},(_,j)=>{ const s=sq.reduce((a,r)=>a+r[j],0); return {s,ok:s===magic}; });
+}
+function getDiagSums(sq, n) {
+  const magic = n*(n*n+1)/2;
+  let d1=0,d2=0;
+  for(let i=0;i<n;i++){d1+=sq[i][i];d2+=sq[i][n-1-i];}
+  return [{s:d1,ok:d1===magic},{s:d2,ok:d2===magic}];
+}
+
+function renderSquare(sq, n, direction) {
+  const magic = n*(n*n+1)/2;
+  const valid = validateMagicSquare(sq, n);
+  const type  = typeName(n);
+
+  const isOdd = n%2!==0;
+  const d = DIRECTIONS[direction-1];
+  const dirStr = isOdd ? dirLabel(d) : "偶數階（標準演算法）";
+
+  // Cell color logic: diagonal highlights
+  const isMain = (r,c) => r===c;
+  const isAnti = (r,c) => r+c===n-1;
+
+  let html = `<div class="square-block">
+    <div class="sq-header">
+      <div>
+        <div class="sq-title">&#9660; ${n} × ${n} 魔術方陣</div>
+        <div style="font-size:0.75rem;color:#718096;margin-top:3px;">${dirStr}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="sq-badge ${type.cls}">${type.label}</span>
+        <span class="sq-badge ${valid?'badge-valid':'badge-invalid'}">${valid?'✓ 有效':'✗ 無效'}</span>
+        <span class="sq-badge" style="background:rgba(255,255,255,0.06);color:#a0aec0;border:1px solid rgba(255,255,255,0.12);">Magic Sum = ${magic}</span>
+      </div>
+    </div>
+    <div class="sq-grid">
+      <table class="sq-table">`;
+
+  for (let r=0;r<n;r++) {
+    html += '<tr>';
+    for (let c=0;c<n;c++) {
+      const main=isMain(r,c), anti=isAnti(r,c);
+      let cls = main&&anti ? 'diag-both' : main ? 'diag-main' : anti ? 'diag-anti' : '';
+      const bg = main||anti ? 'background:rgba(255,255,255,0.06);' : '';
+      html += `<td class="${cls}" style="${bg}">${sq[r][c]}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += `</table></div>`;
+
+  // Validation chips
+  const rowSums = getRowSums(sq,n);
+  const colSums = getColSums(sq,n);
+  const diagSums = getDiagSums(sq,n);
+  html += `<div class="val-summary">`;
+  rowSums.forEach((v,i)  => html += `<span class="val-chip ${v.ok?'ok':'err'}">列${i+1} = ${v.s}</span>`);
+  colSums.forEach((v,j)  => html += `<span class="val-chip ${v.ok?'ok':'err'}">行${j+1} = ${v.s}</span>`);
+  diagSums.forEach((v,k) => html += `<span class="val-chip ${v.ok?'ok':'err'}">${k===0?'↘對角':'↙對角'} = ${v.s}</span>`);
+  html += `</div></div>`;
+  return html;
+}
+
+/* ════════ Event Handlers ════════ */
+let historyLog = [];
+
+function pushHistory(n, direction) {
+  const type = typeName(n).label;
+  const isOdd = n%2!==0;
+  const desc = isOdd ? `n=${n} (${type}) | 方向${direction}` : `n=${n} (${type})`;
+  const ts = new Date().toLocaleTimeString('zh-TW');
+  historyLog.unshift({n, direction, desc, ts});
+  if (historyLog.length > 20) historyLog.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!historyLog.length) {
+    el.innerHTML = '<div style="color:#4a5568;font-size:0.82rem;text-align:center;padding:16px 0;">尚無紀錄</div>';
+    return;
+  }
+  el.innerHTML = historyLog.map((h,idx)=>`
+    <div class="history-item" onclick="replayHistory(${idx})">
+      <span class="hi-left">${h.desc}</span>
+      <span class="hi-right">${h.ts}</span>
+    </div>`).join('');
+}
+
+function replayHistory(idx) {
+  const h = historyLog[idx];
+  document.getElementById('inp-n').value = h.n;
+  // set radio
+  const radio = document.querySelector(`input[name="direction"][value="${h.direction}"]`);
+  if (radio) { radio.checked = true; onDirChange(); }
+  onGenerate(true);
+}
+
+function getInputs() {
+  const n = parseInt(document.getElementById('inp-n').value);
+  const direction = parseInt(document.querySelector('input[name="direction"]:checked').value);
+  return { n, direction };
+}
+
+function showError(msg) {
+  document.getElementById('output-area').innerHTML =
+    `<div style="text-align:center;color:#fc8181;padding:24px 0;font-size:1rem;">⚠️ ${msg}</div>`;
+}
+
+function onGenerate(silent=false) {
+  const {n, direction} = getInputs();
+  if (isNaN(n)||n<1) { showError("請輸入有效的正整數！"); return; }
+  if (n===2) { showError("2×2 的魔術方陣不存在！"); return; }
+
+  const sq = generateSquare(n, direction);
+  if (!sq) { showError("無法產生方陣，請檢查輸入。"); return; }
+
+  document.getElementById('output-area').innerHTML = renderSquare(sq, n, direction);
+  if (!silent) pushHistory(n, direction);
+}
+
+function onGenerateAll() {
+  const {n} = getInputs();
+  if (isNaN(n)||n<1)  { showError("請輸入有效的正整數！"); return; }
+  if (n===2)          { showError("2×2 的魔術方陣不存在！"); return; }
+  if (n%2===0)        { showError("「產生全部 8 方向」僅適用於奇數階，請輸入奇數 n。"); return; }
+
+  let html = '';
+  for (let dir=1; dir<=8; dir++) {
+    const sq = generateSquare(n, dir);
+    if (sq) html += renderSquare(sq, n, dir);
+  }
+  document.getElementById('output-area').innerHTML = html;
+  pushHistory(n, 0);  // log as "all directions"
+}
+
+function onClear() {
+  document.getElementById('output-area').innerHTML =
+    `<div id="empty-hint" style="text-align:center;color:#4a5568;padding:40px 0;font-size:1rem;">
+       <div style="font-size:3rem;margin-bottom:10px;">🔢</div>
+       尚未產生方陣，請在上方輸入參數後按「產生方陣」
+     </div>`;
+}
+
+function clearHistory() {
+  historyLog = [];
+  renderHistory();
+}
+
+/* ─── Init ─── */
+buildDirectionGrid();
+renderHistory();
+</script>
+</body>
+</html>
