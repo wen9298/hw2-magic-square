@@ -113,6 +113,9 @@
       position: absolute;
       opacity: 0;
       width: 0; height: 0;
+      pointer-events: none;
+      appearance: none;
+      -webkit-appearance: none;
     }
     .dir-btn .btn-label {
       display: flex;
@@ -123,7 +126,7 @@
       padding: 10px 6px;
       border: 1.5px solid rgba(255,255,255,0.18);
       border-radius: 10px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.05) !important;
       font-size: 0.72rem;
       color: #a0aec0;
       text-align: center;
@@ -136,12 +139,12 @@
       font-size: 1.35rem;
     }
     .dir-btn input[type="radio"]:checked + .btn-label {
-      background: rgba(99,179,237,0.22);
-      border-color: #63b3ed;
-      color: #fff;
+      background: rgba(99,179,237,0.22) !important;
+      border-color: #63b3ed !important;
+      color: #fff !important;
     }
     .dir-btn .btn-label:hover {
-      background: rgba(99,179,237,0.12);
+      background: rgba(99,179,237,0.12) !important;
       border-color: rgba(99,179,237,0.5);
       color: #e0e0e0;
     }
